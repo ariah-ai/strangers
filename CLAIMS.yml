@@ -1,0 +1,35 @@
+# This repo's own claims, probed by the `claims` instrument (github.com/missing-piece-lab/instruments):
+#   python ../instruments/instruments/claims/claims.py --root . --docs .
+# State is observed: the README asserts nothing one of these can check. No probe runs the test suite.
+project: strangers
+claims:
+  - id: one-file
+    says: the module is one file under 200 lines
+    probe: test -f strangers.py && test "$(wc -l < strangers.py)" -lt 200
+  - id: no-dependencies
+    says: strangers.py imports only re and unicodedata from the standard library
+    probe: python3 -I -c "import ast,sys;t=ast.parse(open('strangers.py').read());m={a.name.split('.')[0] for n in ast.walk(t) if isinstance(n,(ast.Import,ast.ImportFrom)) for a in n.names}|{n.module.split('.')[0] for n in ast.walk(t) if isinstance(n,ast.ImportFrom) and n.module};sys.exit(0 if m<={'re','unicodedata'} else 1)"
+    subject: [dependencies, standard library]
+  - id: py39-grammar
+    says: strangers.py parses under the Python 3.9 grammar (requires-python = ">=3.9")
+    probe: python3 -I -c "import ast;ast.parse(open('strangers.py').read(),feature_version=(3,9))"
+  - id: readme-shows-the-demo
+    says: the block in the README is exactly what examples/demo.py prints today
+    probe: python3 -I examples/demo.py > /tmp/strangers-demo.$$ && python3 -I -c "import sys;sys.exit(0 if open('/tmp/strangers-demo.$$',encoding='utf-8').read().strip() in open('README.md',encoding='utf-8').read() else 1)"; r=$?; rm -f /tmp/strangers-demo.$$; exit $r
+    subject: [README, demo]
+    contradicts: {false: [what the model sees]}
+  - id: example-feed-is-ascii
+    says: the example feed holds every hostile character as a JSON escape, never the character itself
+    probe: python3 -I -c "import sys;sys.exit(0 if all(b<128 for b in open('examples/feed.json','rb').read()) else 1)"
+  - id: scrub-gate-clean
+    says: the scrub gate finds no secret-shaped string and the repo is under the size cap; private words are checked only when a list is present
+    probe: bash tools/check.sh >/dev/null
+    subject: [scrub, gate]
+    contradicts: {false: [clean]}
+  - id: line-count
+    says: lines in the repo (the budget is 1,000)
+    probe: find . -path ./.git -prune -o -type f \( -name '*.py' -o -name '*.md' -o -name '*.yml' -o -name '*.sh' -o -name '*.toml' -o -name 'LICENSE' \) -print0 | xargs -0 cat | wc -l
+    kind: count
+  - id: mit
+    says: the license is MIT
+    probe: head -1 LICENSE | grep -q "MIT License"

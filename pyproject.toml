@@ -1,0 +1,16 @@
+[project]
+name = "strangers"
+version = "0.1.0"
+description = "Hold words you didn't write before a model reads them: one line per stranger's act, handle first, words in quotes nothing inside can close."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Ariah" }]
+dependencies = []
+
+[tool.setuptools]
+py-modules = ["strangers"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib -q"

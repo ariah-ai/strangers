@@ -54,7 +54,7 @@ What each of those was before:
 
 ## Quickstart
 
-No dependencies. Tested on Python 3.12; the grammar is checked against 3.9 (`CLAIMS.yml`).
+No dependencies. Python 3.9 or newer (the grammar is checked against 3.9 in `CLAIMS.yml`).
 
 ```bash
 git clone https://github.com/ariah-ai/strangers && cd strangers
@@ -76,15 +76,16 @@ context_block = strangers.block(items, owner="Ines Okafor", agent="Bramble", max
 | function | what it gives you |
 |---|---|
 | `scrub(s)` | NFKC, then every invisible or non-character code point to a space, whitespace collapsed: one line |
-| `quote(s, limit=300)` | scrub, then every quote mark that could close `« »` folded to `"`, runs of `<`/`>` to one `‹`/`›`, `[[ ]] {{ }}` broken, runs of `#=*~` and backticks and `-` cut to one, an ellipsis when cut |
+| `quote(s, limit=300)` | scrub, then every quote mark that could close `« »` folded to `"`, runs of `<`/`>` to one `‹`/`›`, `[[ ]] {{ }}` broken, runs of three or more of `#=*~`, backticks or `-` cut to one, an ellipsis when cut |
 | `name(display, protected, labelled)` | a display name safe to show, or `""` when it claims a protected word or the author is labelled; its own brackets become spaces |
-| `claimed(text, protected)` | which protected word a text contains once spaces and punctuation are gone (`I.n.e.s` counts), or `None` |
+| `claimed(text, protected)` | which protected word a text contains once spaces and punctuation are gone (`I.n.e.s` counts; a word under four letters only whole), or `None` |
 | `handle(h)` | the `@handle` a line leads with: one ASCII token (letters, digits, `._-:@+`), or `?` |
-| `line(item, protected)` | one act: when, `@handle` first (marked if it claims a protected word), `(name)`, what, `«words»` |
+| `line(item, protected)` | one act: when (a timestamp's characters, or `?`), `@handle` first (marked if it claims a protected word), `(name)`, what, `«words»` |
 | `block(items, owner, agent, title, roles, max_chars, limit)` | the header, the lines, the footer; the **oldest** lines go first when it won't fit, and a note says how many |
 
 The owner's full name and each of its words of three letters or more are protected, plus `agent` and `roles`
-(default: system, admin, moderator, official, support, staff, assistant, developer).
+(default: system, admin, moderator, official, support, staff, assistant, developer). A protected word under four
+letters counts only as a whole word, so an owner named `Al` doesn't mark `@tomatoes4all`.
 
 ## The rules, and why
 
@@ -95,7 +96,8 @@ The owner's full name and each of its words of three letters or more are protect
 - **One act, one line, and the line starts with who.** A newline in a stranger's words can't start a line of its own,
   so it can't forge an entry, a header or a footer. The handle is an identity, so it is always shown: never withheld,
   only marked when it claims a protected word. It's held to one ASCII token, so a blank, spaced or lookalike handle
-  shows as `@?`, never as someone.
+  shows as `@?`, never as someone. Only the time comes before it, held to a timestamp's characters, so a time the
+  author sets (a post's `createdAt`) can't put a name in front of the handle.
 - **The quote has one pair of marks, and they're ours.** Every mark that could read as `«`, `»` or a double quote
   becomes a plain `"` inside the words. Apostrophes stay, because they're words.
 - **No structure from strangers.** `< >` become `‹ ›`, so `</feed>` can't close an XML-style wrapper. `[[ ]]` and
@@ -104,11 +106,13 @@ The owner's full name and each of its words of three letters or more are protect
 - **Names are a courtesy; the handle is the wall.** A display name claiming the owner, the agent or a role is
   withheld. The header says the owner never speaks in this block. That's the sentence the model needs most when a
   lookalike gets through, and some will.
-- **The cap drops the oldest, never the newest.** The newest act is the one the agent is about to answer.
+- **The cap drops the oldest, never the newest.** The newest act is the one the agent is about to answer. When it
+  alone won't fit, its words are cut to fit and the `« »` stay whole. Only when `max_chars` can't hold even its time,
+  handle and verb is it gone, and the note says so.
 
 ## Known limits
 
-The tests pin the first four, so they can't quietly go stale:
+The tests pin the first five, so they can't quietly go stale:
 
 - **Lookalike letters from other scripts pass `name()`.** NFKC doesn't fold a Cyrillic `І` into a Latin `I`, so
   `Іnes` gets through. A confusables fold would catch more and break real names in other scripts. The handle leading
@@ -118,6 +122,8 @@ The tests pin the first four, so they can't quietly go stale:
   ones are friendly.
 - **A handle outside ASCII shows as `@?`.** A platform that allows Unicode handles loses them here; the trade is that
   a lookalike handle (a Cyrillic `І`, a fullwidth letter) never passes as anyone.
+- **A protected word of four letters or more counts inside other words.** `staff` marks `@falstaff`. Over-marking
+  is the safe side: the mark only says the handle is a stranger's.
 - **"Unassigned" is your Python's Unicode table.** An emoji newer than your Python is a non-character to it, and becomes
   a space.
 - **Text only.** Links, images and attachments are yours to handle: a link's text is quoted like any other words.

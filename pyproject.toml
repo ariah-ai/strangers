@@ -10,7 +10,3 @@ dependencies = []
 
 [tool.setuptools]
 py-modules = ["strangers"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--import-mode=importlib -q"

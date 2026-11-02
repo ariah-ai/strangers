@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the tests, then the scrub gate. No pytest needed: `python tests/run.py`. (pytest works too: `python -m pytest`.)"""
+"""Run the tests, then the scrub gate. No pytest needed: `python tests/run.py`."""
 import glob, os, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

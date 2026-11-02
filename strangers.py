@@ -73,7 +73,7 @@ def _fold(s):
 
 
 def claimed(text, protected):
-    """The first protected word `text` contains once spaces and punctuation are gone ("K.e.v.i.n" counts), or None. A
+    """The first protected word `text` contains once spaces and punctuation are gone ("I.n.e.s" counts), or None. A
     word under four letters counts only whole (the text, or one of its words), so "Al" doesn't mark @tomatoes4all;
     block() protects an owner's words of three letters or more, and the full name at any length. Lookalike letters
     from other scripts are not folded: a Cyrillic letter in a name passes. See the README."""
@@ -88,7 +88,8 @@ def claimed(text, protected):
 
 def name(display, protected=DEFAULT_ROLES, labelled=False):
     """A display name to show in parentheses after the @handle, or "" when the author is labelled or the name claims a
-    protected word. Its own brackets become spaces, so a name can't fake the line's shape ("A) followed you")."""
+    protected word. Its own ( ) and [ ] become spaces, so a name can't fake the line's shape ("A) followed you"); braces
+    stay, since they don't shape a line."""
     d = re.sub(r"\s+", " ", re.sub(r"[()\[\]]", " ", quote(display, 64))).strip()
     if not d or labelled or claimed(d, protected):
         return ""

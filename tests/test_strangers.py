@@ -54,11 +54,14 @@ assert S.name(chr(0x406) + "nes", P) == chr(0x406) + "nes", "known limit, pinned
 assert S.name("A" + chr(0x2768) + "x" + chr(0x2769), P) == "A" + chr(0x2768) + "x" + chr(0x2769), "known limit: ornament brackets pass"
 assert S.name("A" + chr(0xFF08) + "x" + chr(0xFF09) + "b", P) == "A x b" and S.name("A" + chr(0xFE59) + "x" + chr(0xFE5A), P) == "A x", "fullwidth + small parens fold, then go"
 assert S.claimed("ines-official.feed.example", P) == "Ines" and S.claimed("moss.feed.example", P) is None
-assert S.claimed("tomatoes4all.feed.example", ("Al",)) is None and S.claimed("kevlar.example", ("Kev",)) is None, "a short word counts only whole"
+assert S.claimed("tomatoes4all.feed.example", ("Al",)) is None and S.claimed("almond.feed.example", ("Al",)) is None, "a short word counts only whole"
 assert S.claimed("al.feed.example", ("Al",)) == "Al" and S.claimed("A.l", ("Al",)) == "Al" and S.claimed("al_smith", ("Al",)) == "Al"
 assert S.claimed("falstaff.feed.example", P) == "staff", "known limit, pinned: a word of four letters or more counts inside another word"
-assert S.claimed("kev2.example", ("Kev",)) is None and S.claimed("alsmith.example", ("Al",)) is None and S.claimed("kev-2.example", ("Kev",)) == "Kev", \
+assert S.claimed("al2.feed.example", ("Al",)) is None and S.claimed("alsmith.example", ("Al",)) is None and S.claimed("al-2.feed.example", ("Al",)) == "Al", \
     "known limit, pinned: a short word joined to letters or digits is not marked"
+assert S.claimed("figment.feed.example", ("Fig",)) is None and S.claimed("fig-2.feed.example", ("Fig",)) == "Fig", \
+    "the line sits at four letters: three is short"
+assert S.claimed("kinesis.feed.example", P) == "Ines", "known limit, pinned: four letters counts inside another word"
 
 # --- line: who first, always one line, one pair of « »
 ln = S.line({"when": "2026-11-02T09:00Z", "handle": "ines-official.feed.example", "what": "reply", "name": "Ines (owner)",

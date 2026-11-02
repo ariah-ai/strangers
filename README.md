@@ -108,8 +108,9 @@ letters counts only as a whole word, so an owner named `Al` doesn't mark `@tomat
   lookalike gets through, and some will.
 - **The cap drops the oldest, never the newest.** The newest act is the one the agent is about to answer. When it
   alone won't fit, its words are cut to fit and the `« »` stay whole. Only when `max_chars` can't hold even its line
-  with one character of its words left (for an act without words, its whole line) is it gone, and the note says so. `max_chars` bounds the lines between the header and footer, which
-  always stay, along with the note: below their size, the block runs past it.
+  with one character of its words left (for an act without words, its whole line) is it gone, and the note says so.
+  `max_chars` bounds the lines between the header and footer, which always stay, along with the note: below their
+  size, the block runs past it.
 
 ## Known limits
 

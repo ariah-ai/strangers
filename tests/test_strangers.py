@@ -57,6 +57,8 @@ assert S.claimed("ines-official.feed.example", P) == "Ines" and S.claimed("moss.
 assert S.claimed("tomatoes4all.feed.example", ("Al",)) is None and S.claimed("kevlar.example", ("Kev",)) is None, "a short word counts only whole"
 assert S.claimed("al.feed.example", ("Al",)) == "Al" and S.claimed("A.l", ("Al",)) == "Al" and S.claimed("al_smith", ("Al",)) == "Al"
 assert S.claimed("falstaff.feed.example", P) == "staff", "known limit, pinned: a word of four letters or more counts inside another word"
+assert S.claimed("kev2.example", ("Kev",)) is None and S.claimed("alsmith.example", ("Al",)) is None and S.claimed("kev-2.example", ("Kev",)) == "Kev", \
+    "known limit, pinned: a short word joined to letters or digits is not marked"
 
 # --- line: who first, always one line, one pair of « »
 ln = S.line({"when": "2026-11-02T09:00Z", "handle": "ines-official.feed.example", "what": "reply", "name": "Ines (owner)",

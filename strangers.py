@@ -74,8 +74,9 @@ def _fold(s):
 
 def claimed(text, protected):
     """The first protected word `text` contains once spaces and punctuation are gone ("K.e.v.i.n" counts), or None. A
-    word under four letters counts only whole (the text, or one of its words), so "Al" doesn't mark @tomatoes4all.
-    Lookalike letters from other scripts are not folded: a Cyrillic letter in a name passes. See the README."""
+    word under four letters counts only whole (the text, or one of its words), so "Al" doesn't mark @tomatoes4all;
+    block() protects an owner's words of three letters or more, and the full name at any length. Lookalike letters
+    from other scripts are not folded: a Cyrillic letter in a name passes. See the README."""
     t = _fold(text)
     parts = {p.casefold() for p in re.split(r"[\W_]+", scrub(text))}
     for w in protected:

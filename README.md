@@ -108,11 +108,12 @@ letters counts only as a whole word, so an owner named `Al` doesn't mark `@tomat
   lookalike gets through, and some will.
 - **The cap drops the oldest, never the newest.** The newest act is the one the agent is about to answer. When it
   alone won't fit, its words are cut to fit and the `« »` stay whole. Only when `max_chars` can't hold even its time,
-  handle and verb is it gone, and the note says so.
+  handle and verb is it gone, and the note says so. `max_chars` bounds the lines between the header and footer, which
+  always stay, along with the note: below their size, the block runs past it.
 
 ## Known limits
 
-The tests pin the first five, so they can't quietly go stale:
+The tests pin the first six, so they can't quietly go stale:
 
 - **Lookalike letters from other scripts pass `name()`.** NFKC doesn't fold a Cyrillic `І` into a Latin `I`, so
   `Іnes` gets through. A confusables fold would catch more and break real names in other scripts. The handle leading
@@ -124,6 +125,9 @@ The tests pin the first five, so they can't quietly go stale:
   a lookalike handle (a Cyrillic `І`, a fullwidth letter) never passes as anyone.
 - **A protected word of four letters or more counts inside other words.** `staff` marks `@falstaff`. Over-marking
   is the safe side: the mark only says the handle is a stranger's.
+- **A protected word under four letters, joined to other letters or digits, isn't marked.** `Kev` marks
+  `@kev-2.example` but not `@kev2.example`. The handle still leads the line, and the header still says who never
+  speaks here.
 - **"Unassigned" is your Python's Unicode table.** An emoji newer than your Python is a non-character to it, and becomes
   a space.
 - **Text only.** Links, images and attachments are yours to handle: a link's text is quoted like any other words.

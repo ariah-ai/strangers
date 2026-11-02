@@ -10,6 +10,7 @@ the agent may do on a turn that read them (no tools, a draft for a human) is you
     scrub(s)                 NFKC, then every invisible or non-character code point to a space, whitespace collapsed
     quote(s, limit)          scrub, then quote marks folded, < > neutralised, template triggers and rule lines broken, cut
     name(display, protected, labelled)   a display name safe to show, or "" when it claims a protected name or role
+    handle(h)                the @handle a line leads with: one ASCII token, or "?"
     line(item, protected)    one act as one line: when, @handle first, (name), what, «words»
     block(items, owner, ...) the header, the lines (oldest first, the oldest dropped to fit) and the footer
 
@@ -18,7 +19,7 @@ Standard library only. Python 3.9+.
 import re
 import unicodedata
 
-__all__ = ["scrub", "quote", "name", "line", "block", "claimed", "DEFAULT_ROLES", "VERBS"]
+__all__ = ["scrub", "quote", "name", "handle", "line", "block", "claimed", "DEFAULT_ROLES", "VERBS"]
 
 # Everything a reader can't see: control (Cc), format (Cf: zero-width marks, bidi controls, the tag characters
 # U+E0001-E007F that smuggle ASCII invisibly), private use (Co), surrogates (Cs), unassigned (Cn), the line and
@@ -91,12 +92,22 @@ def name(display, protected=DEFAULT_ROLES, labelled=False):
     return d
 
 
+HANDLE = re.compile(r"[A-Za-z0-9._@:+-]{1,100}")
+
+
+def handle(h):
+    """The @handle a line leads with: one token of ASCII letters, digits and . _ - : @ + (an atproto handle, Mastodon's
+    user@host, an email, most usernames), at most 100 long; anything else is "?". Blank, spaced, non-ASCII (a lookalike
+    letter from another script) or not text at all never renders as a handle. ASCII is checked first: no case fold runs."""
+    return h if isinstance(h, str) and h.isascii() and HANDLE.fullmatch(h) else "?"
+
+
 def line(item, protected=DEFAULT_ROLES, limit=300):
     """One act as one line. `item`: {"when", "handle", "what", "words"?, "name"?, "labelled"?}. The handle leads,
     always, and is marked when it claims a protected word: a handle is an identity, so it is shown, never withheld."""
-    handle = quote(item.get("handle"), 100) or "?"
-    who = "@" + handle
-    w = claimed(handle, protected)
+    h = handle(item.get("handle"))
+    who = "@" + h
+    w = claimed(h, protected)
     if w:
         who += f" (a stranger, not {quote(w, 40)})"
     labelled = bool(item.get("labelled"))

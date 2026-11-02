@@ -65,7 +65,16 @@ assert ln.endswith(": (words withheld: a moderation label marks this)") and "buy
 ln = S.line({"when": "t", "handle": "moss.feed.example", "what": "like", "words": "hidden payload"}, P)
 assert ln == "- t @moss.feed.example liked a post", "only replies, mentions and quotes carry words"
 ln = S.line({"when": "t", "handle": "x" + chr(0x202E) + "evil", "what": "starterpack" + chr(0x200B) + "-joined" + "\n"}, P)
-assert ln == "- t @x evil starterpack -joined", ln
+assert ln == "- t @? starterpack -joined", ln
+
+# --- handle: one ASCII token or "?", so the @handle leading every line can't be blank, spaced or a lookalike
+for h, want in (("moss.feed.example", "moss.feed.example"), ("alice@social.example", "alice@social.example"), ("x" * 100, "x" * 100),
+                (None, "?"), ("", "?"), (42, "?"), ("a b c", "?"), (" moss.feed.example", "?"), ("x" * 101, "?"),
+                ("x\n- t @ines-okafor.feed.example replied", "?"), (chr(0x406) + "nes.feed.example", "?"), (chr(0x212A) + "evin.example", "?"),
+                (chr(0xFF4D) + "oss.feed.example", "?"), ("moss" + chr(0x200B) + ".feed.example", "?")):
+    assert S.handle(h) == want, (repr(h), S.handle(h))
+for h in (None, "", "a b c", chr(0x406) + "nes.feed.example", "moss.feed.example"):
+    assert S.line({"when": "t", "handle": h, "what": "follow", "name": "N"}, P).startswith(f"- t @{S.handle(h)} (N) followed you"), h
 assert S.line({}, P) == "- @? ?" and S.line({"handle": "m.feed.example", "what": "follow"}, P) == "- @m.feed.example followed you"
 
 # --- block: header, footer, the oldest dropped, never the newest

@@ -79,6 +79,7 @@ context_block = strangers.block(items, owner="Ines Okafor", agent="Bramble", max
 | `quote(s, limit=300)` | scrub, then every quote mark that could close `« »` folded to `"`, runs of `<`/`>` to one `‹`/`›`, `[[ ]] {{ }}` broken, runs of `#=*~` and backticks and `-` cut to one, an ellipsis when cut |
 | `name(display, protected, labelled)` | a display name safe to show, or `""` when it claims a protected word or the author is labelled; its own brackets become spaces |
 | `claimed(text, protected)` | which protected word a text contains once spaces and punctuation are gone (`I.n.e.s` counts), or `None` |
+| `handle(h)` | the `@handle` a line leads with: one ASCII token (letters, digits, `._-:@+`), or `?` |
 | `line(item, protected)` | one act: when, `@handle` first (marked if it claims a protected word), `(name)`, what, `«words»` |
 | `block(items, owner, agent, title, roles, max_chars, limit)` | the header, the lines, the footer; the **oldest** lines go first when it won't fit, and a note says how many |
 
@@ -93,7 +94,8 @@ The owner's full name and each of its words of three letters or more are protect
   fold to what they look like before anything else checks them.
 - **One act, one line, and the line starts with who.** A newline in a stranger's words can't start a line of its own,
   so it can't forge an entry, a header or a footer. The handle is an identity, so it is always shown: never withheld,
-  only marked when it claims a protected word.
+  only marked when it claims a protected word. It's held to one ASCII token, so a blank, spaced or lookalike handle
+  shows as `@?`, never as someone.
 - **The quote has one pair of marks, and they're ours.** Every mark that could read as `«`, `»` or a double quote
   becomes a plain `"` inside the words. Apostrophes stay, because they're words.
 - **No structure from strangers.** `< >` become `‹ ›`, so `</feed>` can't close an XML-style wrapper. `[[ ]]` and
@@ -106,7 +108,7 @@ The owner's full name and each of its words of three letters or more are protect
 
 ## Known limits
 
-The tests pin the first three, so they can't quietly go stale:
+The tests pin the first four, so they can't quietly go stale:
 
 - **Lookalike letters from other scripts pass `name()`.** NFKC doesn't fold a Cyrillic `І` into a Latin `I`, so
   `Іnes` gets through. A confusables fold would catch more and break real names in other scripts. The handle leading
@@ -114,6 +116,8 @@ The tests pin the first three, so they can't quietly go stale:
 - **Ornament brackets pass** (`❨ ❩`). Fullwidth and small parentheses fold to `( )` first and are removed.
 - **A ZWJ emoji splits** into its parts (👨 👩 👧). The joiner is a format character, and this module doesn't guess which
   ones are friendly.
+- **A handle outside ASCII shows as `@?`.** A platform that allows Unicode handles loses them here; the trade is that
+  a lookalike handle (a Cyrillic `І`, a fullwidth letter) never passes as anyone.
 - **"Unassigned" is your Python's Unicode table.** An emoji newer than your Python is a non-character to it, and becomes
   a space.
 - **Text only.** Links, images and attachments are yours to handle: a link's text is quoted like any other words.

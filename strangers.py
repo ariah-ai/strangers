@@ -154,8 +154,8 @@ def block(items, owner, agent="you", title="FEED", roles=DEFAULT_ROLES, max_char
     lines = [line(i, protected, limit) for i in items]
     n, room = len(lines), max_chars - len(head) - len(foot) - 1      # each line after the header costs its length + 1
 
-    def note(dropped, kept):
-        if not kept:
+    def note(dropped, k):
+        if not k:
             return f"({dropped} not shown: too long for max_chars)"
         return f"({dropped} older {'one' if dropped == 1 else 'ones'} not shown)"
 
@@ -165,15 +165,16 @@ def block(items, owner, agent="you", title="FEED", roles=DEFAULT_ROLES, max_char
             t.append(t[-1] + len(x) + 1)
         return t
 
+    t = sums()
+
     def cost(k):                                   # the newest k lines, plus the note's real length when any are left out
         return t[k] + (len(note(n - k, k)) + 1 if k < n else 0)
 
-    t = sums()
     if n and cost(n) > room:                       # the newest stays: when it alone won't fit, its words are cut to fit
         new, over = items[-1], min(cost(1), cost(n)) - room     # to the cheaper way to keep it: with the note, or with all
         wl = len(quote(new.get("words"), limit))
         if over > 0 and str(new.get("what") or "") in WORDS and not new.get("labelled") and wl - over >= 1:
-            lines[-1] = line(new, protected, wl - over)
+            lines[-1] = line(new, protected, wl - over)   # at least `over` shorter (quote() may drop a space too); re-costed below
             t = sums()
     k = next((k for k in range(n, 0, -1) if cost(k) <= room), 0)
     kept, dropped = lines[n - k:], n - k

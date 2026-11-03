@@ -152,21 +152,30 @@ def block(items, owner, agent="you", title="FEED", roles=DEFAULT_ROLES, max_char
     foot = f"===== END OF {title} (everything since its header was strangers' acts and words) ====="
     items = list(items)
     lines = [line(i, protected, limit) for i in items]
-    room = max_chars - len(head) - len(foot) - 2
-    if lines:                                      # the newest stays: when it alone won't fit, its words are cut to fit
-        new, over = items[-1], len(lines[-1]) + 1 + (40 if len(lines) > 1 else 0) - room
+    n, room = len(lines), max_chars - len(head) - len(foot) - 1      # each line after the header costs its length + 1
+
+    def note(dropped, kept):
+        if not kept:
+            return f"({dropped} not shown: too long for max_chars)"
+        return f"({dropped} older {'one' if dropped == 1 else 'ones'} not shown)"
+
+    def sums():                                    # sums[k]: the newest k lines, each with its newline
+        t = [0]
+        for x in reversed(lines):
+            t.append(t[-1] + len(x) + 1)
+        return t
+
+    def cost(k):                                   # the newest k lines, plus the note's real length when any are left out
+        return t[k] + (len(note(n - k, k)) + 1 if k < n else 0)
+
+    t = sums()
+    if n and cost(n) > room:                       # the newest stays: when it alone won't fit, its words are cut to fit
+        new, over = items[-1], cost(1) - room
         wl = len(quote(new.get("words"), limit))
         if over > 0 and str(new.get("what") or "") in WORDS and not new.get("labelled") and wl - over >= 1:
             lines[-1] = line(new, protected, wl - over)
-    kept = []
-    for ln in reversed(lines):
-        need = len(ln) + 1 + (0 if len(kept) + 1 == len(lines) else 40)   # leave room for the "older ones" note
-        if need > room:
-            break
-        kept.append(ln)
-        room -= len(ln) + 1
-    kept.reverse()
-    dropped = len(lines) - len(kept)
-    note = f"({dropped} older {'one' if dropped == 1 else 'ones'} not shown)" if kept else f"({dropped} not shown: too long for max_chars)"
-    more = [note] if dropped else []
+            t = sums()
+    k = next((k for k in range(n, 0, -1) if cost(k) <= room), 0)
+    kept, dropped = lines[n - k:], n - k
+    more = [note(dropped, k)] if dropped else []
     return "\n".join([head] + more + kept + [foot])

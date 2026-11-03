@@ -170,7 +170,7 @@ def block(items, owner, agent="you", title="FEED", roles=DEFAULT_ROLES, max_char
 
     t = sums()
     if n and cost(n) > room:                       # the newest stays: when it alone won't fit, its words are cut to fit
-        new, over = items[-1], cost(1) - room
+        new, over = items[-1], min(cost(1), cost(n)) - room     # to the cheaper way to keep it: with the note, or with all
         wl = len(quote(new.get("words"), limit))
         if over > 0 and str(new.get("what") or "") in WORDS and not new.get("labelled") and wl - over >= 1:
             lines[-1] = line(new, protected, wl - over)
